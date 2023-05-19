@@ -1,66 +1,108 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# คู่มือการติดตั้ง Laravel Sanctum สำหรับ Single Page Application (SPA) ที่ใช้ระบบการเข้าสู่ระบบด้วย Token
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+คู่มือนี้จะให้คำแนะนำวิธีการติดตั้ง Laravel Sanctum และสร้าง Single Page Application (SPA) ที่มีระบบการเข้าสู่ระบบด้วย Token โดยใช้ PHP พวกเราจะตั้งค่า Laravel Sanctum สำหรับการรับรองความถูกต้องด้วย Token ของ API จากนั้นสร้างระบบการเข้าสู่ระบบใน SPA
 
-## About Laravel
+## ข้อกำหนดเบื้องต้น
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 7.3 หรือสูงกว่า
+- ติดตั้ง Composer แบบส่วนกลาง
+- Laravel Framework 7.0 หรือสูงกว่า
+- MySQL หรือฐานข้อมูล SQL อื่น ๆ
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## คู่มือทีละขั้นตอน
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. **ติดตั้ง Laravel Sanctum**
 
-## Learning Laravel
+   Laravel Sanctum สามารถติดตั้งผ่าน Composer รันคำสั่งต่อไปนี้ใน Terminal ของคุณ:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+   ```
+   composer require laravel/sanctum
+   ```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2. **เผยแพร่ไฟล์การกำหนดค่าและการย้ายของ Sanctum**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+   หลังจากที่แพ็คเกจถูกติดตั้ง คุณควรเผยแพร่ไฟล์การกำหนดค่าและการย้ายของ Sanctum โดยใช้คำสั่ง `vendor:publish` ของ Artisan คำสั่งนี้จะเผยแพร่ไฟล์การกำหนดค่า `sanctum` ของ Sanctum ไปยังไดเรกทอรี `config` ของคุณ:
 
-## Laravel Sponsors
+   ```
+   php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+   นี่จะเผยแพร่การย้ายของตาราง `personal_access_tokens` ไปยังไดเรกทอรี `database/migrations` ของคุณ
 
-### Premium Partners
+3. **รัน Migrations**
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+   รัน migrations ด้วยคำสั่งต่อไปนี้:
 
-## Contributing
+   ```
+   php artisan migrate
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. **เพิ่ม middleware ของ Sanctum**
 
-## Code of Conduct
+   ในกลุ่ม middleware `api` ภายในไฟล์ `app/Http/Kernel.php` ของแอปพลิเคชันของคุณ ให้เพิ่ม middleware `EnsureFrontendRequestsAreStateful::class`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+   ```php
+   'api' => [
+       \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
+       'throttle:60,1',
+       \Illuminate\Routing\Middleware\SubstituteBindings::class,
+   ],
+   ```
 
-## Security Vulnerabilities
+5. **ใช้ trait `HasApiTokens`**
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+   ต่อไป ควรใช้ trait `HasApiTokens` ในโมเดล `App\Models\User` ของคุณ Trait นี้จะให้บางเมธอดช่วยเหลือแก่โมเดลของคุณ ซึ่งช่วยให้คุณตรวจสอบ token และความสามารถของผู้ใช้ที่ผ่านการตรวจสอบแล้ว:
 
-## License
+   ```php
+   namespace App\Models;
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+   use Illuminate\Foundation\Auth\User as Authenticatable;
+   use Laravel\Sanctum\HasApiTokens;
+
+   class User extends Authenticatable
+   {
+       use HasApiTokens, Notifiable;
+   }
+   ```
+
+6. **สร้างจุดสิ้นสุดการเข้าสู่ระบบ**
+
+   คุณสามารถสร้างจุดสิ้นสุดการเข้าสู่ระบบในไฟล์ `routes/api.php` ของคุณ นี่จะใช้เมธอด `attempt` เพื่อตรวจสอบข้อมูลประจำตัวผู้ใช้ ถ้าข้อมูลประจำตัวผู้ใช้ถูกต้อง เราจะส่งกลับ token ที่สามารถใช้สำหรับคำขอที่ผ่านการตรวจสอบ
+
+   ```php
+   use Illuminate\Http\Request;
+   use Illuminate\Support\Facades\Route;
+   use App\Models\User;
+   use Illuminate\Support\Facades\Hash;
+
+   Route::post('/login', function (Request $request) {
+       $user = User::where('email', $request->email)->first();
+
+       if (! $user || ! Hash::check($request->password, $user->password)) {
+           return response([
+               'message' => ['These credentials do not match our records.']
+           ], 404);
+       }
+
+       $token = $user->createToken('my-app-token')->plainTextToken;
+
+       $response = [
+           'user' => $user,
+           'token' => $token,
+       ];
+
+       return response($response, 201);
+   });
+   ```
+
+7. **ใช้ token**
+
+   ตอนนี้คุณสามารถใช้ token ที่คุณได้รับจากจุดสิ้นสุดการเข้าสู่ร
+
+บบเพื่อทำคำขอที่ผ่านการตรวจสอบไปยัง API ของคุณ คุณควรรวมมันในส่วน `Authorization` ของ header ดังนี้:
+
+```vbnet
+Authorization: Bearer <token>
+```
+
+เรียบร้อยแล้ว! ตอนนี้คุณก็พร้อมใช้ Laravel Sanctum ในการสร้างระบบการเข้าสู่ระบบด้วย Token สำหรับ Single Page Application (SPA) ของคุณ.
